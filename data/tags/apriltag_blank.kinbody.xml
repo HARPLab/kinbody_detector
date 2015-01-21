@@ -1,0 +1,7 @@
+<KinBody name="NAME">
+  <Body type="static" name="NAME">
+    <Geom type="none">
+      <Render>MESH</Render>
+    </Geom>      
+  </Body>
+</KinBody>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <name>kinbody_detector</name>
+  <version>0.0.0</version>
+  <description>
+    The kinbody_detector package provides a way to convert ROS MarkerArray
+    data into openrave kinbodies.
+  </description>
+  <url type="repository">https://github.com/personalrobotics/kinbody_detector</url>
+  <maintainer email="awalsman@cs.cmu.edu">Aaron Walsman</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>openrave_catkin</build_depend>
+</package>
+
