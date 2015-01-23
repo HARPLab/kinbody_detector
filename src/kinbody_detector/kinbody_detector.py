@@ -69,8 +69,9 @@ class KinBodyDetector(object):
                         rospy.Time(),
                         rospy.Duration(timeout))
                 frame_trans, frame_rot = self.listener.lookupTransform(
-                        self.detection_frame,
+#                        self.detection_frame,
                         self.destination_frame,
+                        self.detection_frame,
                         rospy.Time(0))
                 frame_offset = numpy.matrix(quaternion_matrix(frame_rot))
                 frame_offset[0,3] = frame_trans[0]
@@ -96,4 +97,4 @@ class KinBodyDetector(object):
                 body.SetTransform(kinbody_pose)
                 updated_kinbodies.append(body)
         
-        return added_kinbodies, updated_kinbodiesxo
+        return added_kinbodies, updated_kinbodies
