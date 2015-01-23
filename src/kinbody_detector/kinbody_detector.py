@@ -52,8 +52,8 @@ class KinBodyDetector(object):
         
         for marker in marker_message.markers:
             if marker.ns in self.marker_data:
-                kinbody_file, offset = self.marker_data[marker.ns]
-                offset = numpy.array(offset)
+                kinbody_file, kinbody_offset = self.marker_data[marker.ns]
+                kinbody_offset = numpy.array(kinbody_offset)
                 marker_pose = numpy.array(quaternion_matrix([
                         marker.pose.orientation.x,
                         marker.pose.orientation.y,
@@ -63,7 +63,22 @@ class KinBodyDetector(object):
                 marker_pose[1,3] = marker.pose.position.y
                 marker_pose[2,3] = marker.pose.position.z
                 
-                kinbody_pose = numpy.dot(marker_pose, offset)
+                self.listener.waitForTransform(
+                        self.from_frame,
+                        self.to_frame,
+                        rospy.Time(),
+                        rospy.Duration(timeout))
+                frame_trans, frame_rot = self.listener.lookupTransform(
+                        self.from_frame,
+                        self.to_frame,
+                        rospy.Time(0))
+                frame_offset = numpy.matrix(quaternion_matrix(frame_rot))
+                frame_offset[0,3] = frame_trans[0]
+                frame_offset[1,3] = frame_trans[1]
+                frame_offset[2,3] = frame_trans[2]
+                
+                kinbody_pose = numpy.dot(numpy.dot(frame_offset,marker_pose),
+                                         kinbody_offset)
                 
                 kinbody_name = kinbody_file.replace('.kinbody.xml', '')
                 kinbody_name = kinbody_name + str(marker.id)
