@@ -64,21 +64,21 @@ class KinBodyDetector(object):
                 marker_pose[2,3] = marker.pose.position.z
                 
                 self.listener.waitForTransform(
-                        self.from_frame,
-                        self.to_frame,
+                        self.detection_frame,
+                        self.destination_frame,
                         rospy.Time(),
                         rospy.Duration(timeout))
                 frame_trans, frame_rot = self.listener.lookupTransform(
-                        self.from_frame,
-                        self.to_frame,
+                        self.detection_frame,
+                        self.destination_frame,
                         rospy.Time(0))
                 frame_offset = numpy.matrix(quaternion_matrix(frame_rot))
                 frame_offset[0,3] = frame_trans[0]
                 frame_offset[1,3] = frame_trans[1]
                 frame_offset[2,3] = frame_trans[2]
                 
-                kinbody_pose = numpy.dot(numpy.dot(frame_offset,marker_pose),
-                                         kinbody_offset)
+                kinbody_pose = numpy.array(numpy.dot(numpy.dot(frame_offset,marker_pose),
+                                                     kinbody_offset))
                 
                 kinbody_name = kinbody_file.replace('.kinbody.xml', '')
                 kinbody_name = kinbody_name + str(marker.id)
@@ -96,4 +96,4 @@ class KinBodyDetector(object):
                 body.SetTransform(kinbody_pose)
                 updated_kinbodies.append(body)
         
-        return added_kinbodies, updated_kinbodies
+        return added_kinbodies, updated_kinbodiesxo
