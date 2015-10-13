@@ -2,8 +2,8 @@
 Changelog for package kinbody_detector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.0 (2015-10-12)
+------------------
 * Added missing dependencies to package.xml.
 * Fixing reversed transform lookup.
 * adding tf offsets
