@@ -17,8 +17,9 @@ class KinBodyDetector(object):
                  marker_data_path,
                  kinbody_directory,
                  marker_topic,
-                 detection_frame='tf_kinect2_rgb',
-                 destination_frame='map'):
+                 detection_frame='head/kinect2_rgb_optical_frame',
+                 destination_frame='map',
+                 reference_link=None):
         
         # Initialize a new ros node if one has not already been created
         try:
@@ -33,7 +34,7 @@ class KinBodyDetector(object):
         self.detection_frame = detection_frame
         self.destination_frame = destination_frame
         self.generated_bodies = []
-        
+        self.reference_link = reference_link
         self.listener = tf.TransformListener()
         
         self.ReloadKinbodyData()    
@@ -80,9 +81,16 @@ class KinBodyDetector(object):
                 
                 kinbody_pose = numpy.array(numpy.dot(numpy.dot(frame_offset,marker_pose),
                                                      kinbody_offset))
-                
-                kinbody_name = kinbody_file.replace('.kinbody.xml', '')
-                kinbody_name = kinbody_name + str(marker.id)
+
+                final_kb_pose = kinbody_pose
+
+                #Transform w.r.t reference link if link present
+                if self.reference_link is not None:
+                    ref_link_pose = self.reference_link.GetTransform()
+                    final_kb_pose = numpy.dot(ref_link_pose,kinbody_pose)
+                    
+                    kinbody_name = kinbody_file.replace('.kinbody.xml', '')
+                    kinbody_name = kinbody_name + str(marker.id)
                 
                 # load the object if it does not exist
                 if self.env.GetKinBody(kinbody_name) is None:
@@ -94,7 +102,7 @@ class KinBodyDetector(object):
                     self.generated_bodies.append(new_body)
                 
                 body = self.env.GetKinBody(kinbody_name)
-                body.SetTransform(kinbody_pose)
+                body.SetTransform(final_kb_pose)
                 updated_kinbodies.append(body)
         
         return added_kinbodies, updated_kinbodies
