@@ -89,8 +89,8 @@ class KinBodyDetector(object):
                     ref_link_pose = self.reference_link.GetTransform()
                     final_kb_pose = numpy.dot(ref_link_pose,kinbody_pose)
                     
-                    kinbody_name = kinbody_file.replace('.kinbody.xml', '')
-                    kinbody_name = kinbody_name + str(marker.id)
+                kinbody_name = kinbody_file.replace('.kinbody.xml', '')
+                kinbody_name = kinbody_name + str(marker.id)
                 
                 # load the object if it does not exist
                 if self.env.GetKinBody(kinbody_name) is None:
