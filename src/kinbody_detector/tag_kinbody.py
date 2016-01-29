@@ -17,7 +17,7 @@ def write_tag_offset(path, name, index, offset):
     data[key] = [name, offset.tolist()]
     
     with open(path, 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=2)
 
 def read_tag_offset(path, index):
     key = 'tag%i'%index
