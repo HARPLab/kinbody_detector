@@ -57,3 +57,11 @@ This creates a detector object that you can use to update the environment with d
  detector.Update()
 
 3. This system does not update live, so you must continue to run detector.Update() whenever you want to get a new snapshot of the physical world. 
+
+### Tag Printing
+
+Run this command to produce a printable PDF:
+
+```console
+$ convert tag36_11_00###.png -density 300 -interpolate Nearest -filter point -resize 708x708 tag36_11_00###.pdf
+```
