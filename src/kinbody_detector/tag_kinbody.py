@@ -17,7 +17,7 @@ def write_tag_offset(path, name, index, offset):
     data[key] = [name, offset.tolist()]
     
     with open(path, 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=2)
 
 def read_tag_offset(path, index):
     key = 'tag%i'%index
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=('Loads a kinbody and '
             'creates an apriltag kinbody so that you can specify the tag '
             'location on an object.'))
-    parser.add_argument('-b', '--body', dest='body', type=str,
+    parser.add_argument('-b', '--body', dest='body', type=str, required=True,
             help='The body you wish to tag')
     parser.add_argument('-f', '--family', dest='family', type=str,
             default='36h11',
@@ -49,8 +49,8 @@ if __name__ == '__main__':
             help='The width of the black part of the apriltag in meters')
     parser.add_argument('-t', '--thickness', dest='thickness', type=float,
             default=0.001,
-            help='The thicnkess of the tag in meters')
-    parser.add_argument('-o', '--offsetpath', dest='offsetpath', type=str,
+            help='The thickness of the tag in meters')
+    parser.add_argument('-o', '--offsetpath', dest='offsetpath', type=str, required=True,
             help='The path to a json file that will store the offset data.')
     args = parser.parse_args()
     
