@@ -38,9 +38,13 @@ What you will need:
   
   This will launch an `or_rviz` window with two objects present: (1) the kinbody specified by `--body` and (2) the apriltag specified by `--index`. It also opens an `IPython` terminal that you can use to interact with the environment.
   
+  ![kinbody_detector RViz window](docs/kinbody_detector_open.png)
+  
 3. If you are updating an existing model, run `read()` in the IPython terminal to load the pose of the tag from the JSON database.
   
 4. Right click on the apriltag and choose `Body > Pose Controls`. This will create translation and rotation handles that allow you to move the pose of the apriltag in the environment.
+
+  ![kinbody_detector Pose Controls](docs/kinbody_detector_pose.png)
 
 5. Use the handles to position the apriltag correctly relative to the model. Be careful to match the orientation of the tag correctly - it's easy to accidentally rotate the tag by 90 degrees.
 
