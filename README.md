@@ -11,7 +11,7 @@ What you will need:
 
 ## Creating a KinBody
 
-We use the [`.kinbody.xml` format](http://openrave.programmingvision.com/wiki/index.php/Format:XML#KinBod) tyo represent objects in OpenRAVE. Apriltags detects rigid bodies, so the kinbodies created by apriltags typically consist of one link and no joints.
+We use the [`.kinbody.xml` format](http://openrave.programmingvision.com/wiki/index.php/Format:XML#KinBod) to represent objects in OpenRAVE. Apriltags detects rigid bodies, so the kinbodies created by apriltags typically consist of one link and no joints.
 
 The following `.kinbody.xml` file creates a (1 m x 2 m x 3 m) box centered at the origin:
 ```xml
