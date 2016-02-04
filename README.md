@@ -69,6 +69,8 @@ We follow some conventions when creating kinbodies:
 4. Right click on the apriltag and choose `Body > Pose Controls`. This will create translation and rotation handles that allow you to move the pose of the apriltag in the environment.
 
   ![kinbody_detector Pose Controls](docs/kinbody_detector_pose.png)
+  
+  Note that the tag may start out under the object. You may need to move the camera around to find it.
 
 5. Use the handles to position the apriltag correctly relative to the model. Be careful to match the orientation of the tag correctly - it's easy to accidentally rotate the tag by 90 degrees.
 
