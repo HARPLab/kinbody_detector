@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse, herbpy, numpy, openravepy, os, time, prpy, json
+import argparse, numpy, openravepy, os, time, prpy, json
 import kinbody_detector.apriltag_kinbody as ak
 from openravepy import *
 import IPython
