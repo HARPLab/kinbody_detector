@@ -9,6 +9,24 @@ What you will need:
 2. A corresponding kinbody.
 3. An apriltag sticker or card.
 
+## Creating a KinBody
+
+We use the [`.kinbody.xml` format](http://openrave.programmingvision.com/wiki/index.php/Format:XML#KinBod) tyo represent objects in OpenRAVE. Apriltags detects rigid bodies, so the kinbodies created by apriltags typically consist of one link and no joints.
+
+The following `.kinbody.xml` file creates a (1 m x 2 m x 3 m) box centered at the origin:
+```xml
+<Body name="Body1" type="dynamic"> <!-- Set "name" to the default name of the KinBody. -->
+  <Geom type="box">
+    <AmbientColor>0.5 0.5 0.5 1.0</AmbientColor> <!-- RGBA color -->
+    <DiffuseColor>0.5 0.5 0.5 1.0</DiffuseColor> <!-- RGBA color -->
+    <Extents>1.0 2.0 3.0</Extents> <!-- x, y, and z half-extents, centered at the origin -->
+    <Translation>0.0 0.0 1.5</Translation> <!-- translation of the origin -->
+  </Geom>
+</Body>
+```
+
+We typically put the origin of our kinbodies bottom-center of the model, so the object appears to be resting on the xy-plane when placed at the origin.
+
 ## Printing a Tag
 
 1. Choose an unused tag ID in the "36h11" family. You can find a list of used tags in the [`data/objects/tag_data.json` file](https://github.com/personalrobotics/pr-ordata/blob/master/data/objects/tag_data.json) in the [`pr-ordata` repository](https://github.com/personalrobotics/pr-ordata).
