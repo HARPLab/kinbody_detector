@@ -55,15 +55,16 @@ What you will need:
 
 ## Detection
 
-1. Now that you have your offset file created, you convert apriltag detections to kinbodies in OpenRave. In herbpy, you can now run:
-
- import kinbody_detector.kinbody_detector as kd
- detector = kd.KinBodyDetector(env, '/PATH/TO/tag_data.json', '/PATH/TO/KINBODY/FOLDER', '/apriltags/marker_array')
-
-This creates a detector object that you can use to update the environment with detected kinbodies.
+1. Now that you have your offset file created, you convert apriltag detections to kinbodies in OpenRAVE. In Python, you can now run:
+  ```python
+  import kinbody_detector.kinbody_detector as kd
+  detector = kd.KinBodyDetector(env, '/PATH/TO/tag_data.json', '/PATH/TO/KINBODY/FOLDER', '/apriltags/marker_array')
+  ```
+  This creates a `detector` object that you can use to update the environment with detected kinbodies.
 
 2. To update the environment with the most recent apriltag detections run:
+  ```python
+  detector.Update()
+  ```
 
- detector.Update()
-
-3. This system does not update live, so you must continue to run detector.Update() whenever you want to get a new snapshot of the physical world.
+3. This system does not update live, so you must continue to run `detector.Update()` whenever you want to get a new snapshot of the physical world.
