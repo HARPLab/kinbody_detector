@@ -19,7 +19,7 @@ What you will need:
   ```console
   $ convert tag36_11_00XXX.png -density 300 -interpolate Nearest -filter point -resize 708x708 tag36_11_00XXX.pdf
   ```
-  The output is a 6 cm tag: a 4.8 cm texture with 0.6 cm of padding on all edges.
+  The output is a 4.8 cm tag surrounded by 0.6 cm of padding (6 cm square total).
 
 4. Print this tag at 100% scale.
 
