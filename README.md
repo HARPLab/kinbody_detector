@@ -25,7 +25,11 @@ The following `.kinbody.xml` file creates a (1 m x 2 m x 3 m) box centered at th
 </Body>
 ```
 
-We typically put the origin of our kinbodies bottom-center of the model, so the object appears to be resting on the xy-plane when placed at the origin.
+We follow some conventions when creating kinbodies:
+
+- lengths are in meters
+- x is forward, y is left, z is up
+- the origin is located at the bottom-center of the object, so the object appears to be resting on the center of the xy-plane when placed at the origin 
 
 ## Printing a Tag
 
