@@ -3,7 +3,24 @@ Builds kinbodies from MarkerArray
 
 This page describes the process for using apriltags to detect objects.
 
-What you will need: 1. A physical object. 2. A corresponding kinbody. 3. An apriltag sticker or card.
+What you will need:
+
+1. A physical object.
+2. A corresponding kinbody.
+3. An apriltag sticker or card.
+
+## Printing a Tag
+
+1 . Choose an unused tag ID in the "36h11" family. You can find a list of used tags in the [`data/objects/tag_data.json` file](https://github.com/personalrobotics/pr-ordata/blob/master/data/objects/tag_data.json) in the [`pr-ordata` repository](https://github.com/personalrobotics/pr-ordata).
+2. Find the corresponding `tag36_11_00xxx.png` file in the [`data/tags/textures/tag36h11` directory](https://github.com/personalrobotics/kinbody_detector/tree/master/data/tags/textures/tag36h11) in this repository.
+3. Use ImageMagick to convert the `.png` file to a `.pdf` that is suitable for printing:
+  ```console
+  convert tag36_11_00XXX.png -density 300 -interpolate Nearest -filter point -resize 708x708 tag36_11_00XXX.pdf
+  ```
+  The output is a 6 cm tag: a 4.8 cm texture with 0.6 cm of padding on all edges.
+4. Print this tag at 100% scale.
+
+
 
 Setup:
 
