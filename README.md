@@ -19,7 +19,7 @@ The following `.kinbody.xml` file creates a (1 m x 2 m x 3 m) box centered at th
   <Geom type="box">
     <AmbientColor>0.5 0.5 0.5 1.0</AmbientColor> <!-- RGBA color -->
     <DiffuseColor>0.5 0.5 0.5 1.0</DiffuseColor> <!-- RGBA color -->
-    <Extents>1.0 2.0 3.0</Extents> <!-- x, y, and z half-extents, centered at the origin -->
+    <Extents>0.5 1.0 1.5</Extents> <!-- x, y, and z half-extents, centered at the origin -->
     <Translation>0.0 0.0 1.5</Translation> <!-- translation of the origin -->
   </Geom>
 </Body>
