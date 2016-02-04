@@ -15,14 +15,16 @@ We use the [`.kinbody.xml` format](http://openrave.programmingvision.com/wiki/in
 
 The following `.kinbody.xml` file creates a (1 m x 2 m x 3 m) box centered at the origin:
 ```xml
-<Body name="Body1" type="dynamic"> <!-- Set "name" to the default name of the KinBody. -->
-  <Geom type="box">
-    <AmbientColor>0.5 0.5 0.5 1.0</AmbientColor> <!-- RGBA color -->
-    <DiffuseColor>0.5 0.5 0.5 1.0</DiffuseColor> <!-- RGBA color -->
-    <Extents>0.5 1.0 1.5</Extents> <!-- x, y, and z half-extents, centered at the origin -->
-    <Translation>0.0 0.0 1.5</Translation> <!-- translation of the origin -->
-  </Geom>
-</Body>
+<KinBody name="Body1"> <!-- Set "name" to the default name of the KinBody. -->
+  <Body name="base_link" type="dynamic">
+    <Geom type="box">
+      <AmbientColor>0.5 0.5 0.5 1.0</AmbientColor> <!-- RGBA color -->
+      <DiffuseColor>0.5 0.5 0.5 1.0</DiffuseColor> <!-- RGBA color -->
+      <Extents>0.5 1.0 1.5</Extents> <!-- x, y, and z half-extents, centered at the origin -->
+      <Translation>0.0 0.0 1.5</Translation> <!-- translation of the origin -->
+    </Geom>
+  </Body>
+</KinBody>
 ```
 
 We follow some conventions when creating kinbodies:
