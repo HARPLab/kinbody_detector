@@ -1,5 +1,6 @@
 PACKAGE = 'kinbody_detector'
 import prpy
+import prpy.rave
 import rospy
 import os
 import tf
