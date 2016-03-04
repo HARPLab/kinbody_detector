@@ -15,7 +15,7 @@ class DetectorException(Exception):
 class KinBodyDetector(object):
     def __init__(self,
                  env,
-                 marker_data_path,
+                 marker_data_paths,
                  kinbody_directory,
                  marker_topic,
                  detection_frame='head/kinect2_rgb_optical_frame',
@@ -29,7 +29,7 @@ class KinBodyDetector(object):
             pass
         
         self.env = env
-        self.marker_data_path = marker_data_path
+        self.marker_data_paths = marker_data_paths
         self.kinbody_directory = kinbody_directory
         self.marker_topic = marker_topic
         self.detection_frame = detection_frame
@@ -41,8 +41,10 @@ class KinBodyDetector(object):
         self.ReloadKinbodyData()    
     
     def ReloadKinbodyData(self):
-        with open(self.marker_data_path, 'r') as f:
-            self.marker_data = json.load(f)
+        self.marker_data = {}
+        for p in self.marker_data_paths:
+            with open(p, 'r') as f:
+                self.marker_data.update(json.load(f))
     
     def Update(self, timeout=10):
         marker_message = rospy.wait_for_message(self.marker_topic,

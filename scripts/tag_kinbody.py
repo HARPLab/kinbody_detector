@@ -51,10 +51,12 @@ if __name__ == '__main__':
             help='The thickness of the tag in meters')
     parser.add_argument('-o', '--offsetpath', dest='offsetpath', type=str, required=True,
             help='The path to a json file that will store the offset data.')
+    parser.add_argument('-v', '--viewer', type=str, default='rviz',
+                        help='The OpenRAVE viewer to load')
     args = parser.parse_args()
     
     env = Environment()
-    env.SetViewer('rviz')
+    env.SetViewer(args.viewer)
     
     kinbody = env.ReadKinBodyXMLFile(args.body)
     env.Add(kinbody)
