@@ -20,7 +20,8 @@ class KinBodyDetector(object):
                  marker_topic,
                  detection_frame='head/kinect2_rgb_optical_frame',
                  destination_frame='map',
-                 reference_link=None):
+                 reference_link=None,
+                 frame_offset=None):
         
         # Initialize a new ros node if one has not already been created
         try:
@@ -37,6 +38,7 @@ class KinBodyDetector(object):
         self.generated_bodies = []
         self.reference_link = reference_link
         self.listener = tf.TransformListener()
+        self.frame_offset = frame_offset
         
         self.ReloadKinbodyData()    
     
@@ -65,22 +67,27 @@ class KinBodyDetector(object):
                 marker_pose[1,3] = marker.pose.position.y
                 marker_pose[2,3] = marker.pose.position.z
                 
-                self.listener.waitForTransform(
-                        self.detection_frame,
-                        self.destination_frame,
-                        rospy.Time(),
-                        rospy.Duration(timeout))
-                frame_trans, frame_rot = self.listener.lookupTransform(
-#                        self.detection_frame,
-                        self.destination_frame,
-                        self.detection_frame,
-                        rospy.Time(0))
-                frame_offset = numpy.matrix(quaternion_matrix(frame_rot))
-                frame_offset[0,3] = frame_trans[0]
-                frame_offset[1,3] = frame_trans[1]
-                frame_offset[2,3] = frame_trans[2]
+                # TODO: this means that table has already been optimized. 
+                #       Should we skip table pose estimation?
+                frame_offset = self.frame_offset
+
+                if not frame_offset: 
+                    self.listener.waitForTransform(
+                            self.detection_frame,
+                            self.destination_frame,
+                            rospy.Time(),
+                            rospy.Duration(timeout))
+                    frame_trans, frame_rot = self.listener.lookupTransform(
+                            self.destination_frame,
+                            self.detection_frame,
+                            rospy.Time(0))
+                    frame_offset = numpy.matrix(quaternion_matrix(frame_rot))
+                    frame_offset[0,3] = frame_trans[0]
+                    frame_offset[1,3] = frame_trans[1]
+                    frame_offset[2,3] = frame_trans[2]
                 
-                kinbody_pose = numpy.array(numpy.dot(numpy.dot(frame_offset,marker_pose),
+                kinbody_pose = numpy.array(numpy.dot(numpy.dot(frame_offset,
+                                                               marker_pose),
                                                      kinbody_offset))
 
                 final_kb_pose = kinbody_pose
