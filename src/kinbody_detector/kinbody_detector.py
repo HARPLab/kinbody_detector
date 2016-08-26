@@ -7,7 +7,9 @@ import tf
 import json
 import numpy
 from visualization_msgs.msg import MarkerArray, Marker
-from tf.transformations import quaternion_matrix
+from tf.transformations import quaternion_matrix, euler_from_matrix, euler_matrix
+
+TABLE_HEIGHT = 0.7384871317
 
 class DetectorException(Exception):
     pass
@@ -52,7 +54,12 @@ class KinBodyDetector(object):
         added_kinbodies = []
         updated_kinbodies = []
         
-        for marker in marker_message.markers:
+        print type(marker_message.markers)
+        table_first_marker_list = [marker for marker in marker_message.markers if marker.ns=='tag127']
+        table_first_marker_list.extend([marker for marker in marker_message.markers if marker.ns!='tag127'])
+        table_z_origin= 0.0
+
+        for marker in table_first_marker_list:
             if marker.ns in self.marker_data:
                 kinbody_file, kinbody_offset = self.marker_data[marker.ns]
                 kinbody_offset = numpy.array(kinbody_offset)
@@ -71,7 +78,6 @@ class KinBodyDetector(object):
                         rospy.Time(),
                         rospy.Duration(timeout))
                 frame_trans, frame_rot = self.listener.lookupTransform(
-#                        self.detection_frame,
                         self.destination_frame,
                         self.detection_frame,
                         rospy.Time(0))
@@ -90,6 +96,23 @@ class KinBodyDetector(object):
                     ref_link_pose = self.reference_link.GetTransform()
                     final_kb_pose = numpy.dot(ref_link_pose,kinbody_pose)
                     
+                print marker.ns
+                ax,ay,az = euler_from_matrix(final_kb_pose[:3,:3])
+                print [ax,ay,az]
+                if marker.ns == 'tag127':
+                    ax = numpy.pi/2.0
+                    table_z_origin = final_kb_pose[2,3]
+                    #print table_height
+                else:
+                    final_kb_pose[2,3] = table_z_origin + TABLE_HEIGHT
+                    ax = 0.0
+                    ay = 0.0
+                new_rot_mat = euler_matrix(ax,ay,az)
+                for i in range(3):
+                    for j in range(3):
+                        final_kb_pose[i,j] = new_rot_mat[i,j]
+
+                        
                 kinbody_name = kinbody_file.replace('.kinbody.xml', '')
                 kinbody_name = kinbody_name + str(marker.id)
                 
@@ -104,6 +127,15 @@ class KinBodyDetector(object):
                 
                 body = self.env.GetKinBody(kinbody_name)
                 body.SetTransform(final_kb_pose)
+
+                if marker.ns != 'tag127':
+                    # Crazy loop to get out of collision\
+                    table = self.env.GetKinBody('table127')
+                    while self.env.CheckCollision(table,body) == True:
+                        final_kb_pose[2,3] += 0.01
+                        body.SetTransform(final_kb_pose)
+
+
                 updated_kinbodies.append(body)
         
         return added_kinbodies, updated_kinbodies
