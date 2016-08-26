@@ -64,6 +64,7 @@ class KinBodyDetector(object):
                 marker_pose[0,3] = marker.pose.position.x
                 marker_pose[1,3] = marker.pose.position.y
                 marker_pose[2,3] = marker.pose.position.z
+
                 
                 self.listener.waitForTransform(
                         self.detection_frame,
@@ -79,7 +80,7 @@ class KinBodyDetector(object):
                 frame_offset[0,3] = frame_trans[0]
                 frame_offset[1,3] = frame_trans[1]
                 frame_offset[2,3] = frame_trans[2]
-                
+
                 kinbody_pose = numpy.array(numpy.dot(numpy.dot(frame_offset,marker_pose),
                                                      kinbody_offset))
 
@@ -100,10 +101,12 @@ class KinBodyDetector(object):
                             kinbody_name,
                             os.path.join(self.kinbody_directory, kinbody_file))
                     added_kinbodies.append(new_body)
+                    new_body.SetTransform(final_kb_pose)
                     self.generated_bodies.append(new_body)
                 
-                body = self.env.GetKinBody(kinbody_name)
-                body.SetTransform(final_kb_pose)
-                updated_kinbodies.append(body)
+                else:
+                    body = self.env.GetKinBody(kinbody_name)
+                    body.SetTransform(final_kb_pose)
+                    updated_kinbodies.append(body)
         
         return added_kinbodies, updated_kinbodies
