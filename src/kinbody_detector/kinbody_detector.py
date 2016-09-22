@@ -61,21 +61,28 @@ class KinBodyDetector(object):
         marker_list = marker_message.markers
         
         snap_to_obj = False
+        snapAll = False
         if 'snapToObject' in kw_args.keys():
             snap_to_obj = True
             snap_dict = kw_args['snapToObject']
             tag_ID = snap_dict['ns']
-            objs_to_snap = snap_dict['to_snap']
             snap_marker_ns = 'tag'+`tag_ID`
             snap_obj_name = snap_dict['name']
+
+            objs_to_snap = snap_dict['to_snap']
+            if objs_to_snap[0] == 'all':
+                snapAll = True
 
             marker_list = [marker for marker in marker_message.markers if marker.ns == snap_marker_ns]
             marker_list.extend([marker for marker in marker_message.markers if marker.ns != snap_marker_ns])
             snap_z_origin= 0.0
 
         objs_to_align = None
+        alignAll = False
         if 'alignUpright' in kw_args.keys():
             objs_to_align = kw_args['alignUpright']
+            if objs_to_align[0] == 'all':
+                alignAll = True
 
         for marker in marker_list:
             if marker.ns in self.marker_data:
@@ -109,29 +116,31 @@ class KinBodyDetector(object):
 
                 final_kb_pose = kinbody_pose
 
-                #Transform w.r.t reference link if link present
+                kinbody_name = kinbody_file.replace('.kinbody.xml', '')
+                kinbody_name = kinbody_name + str(marker.id)
 
+                #Transform w.r.t reference link if link present
                 if snap_to_obj == True:
                     if marker.ns == snap_marker_ns:
                         snap_z_origin = final_kb_pose[2,3]
                     else:
-                        final_kb_pose[2,3] = snap_z_origin + OBJ_HEIGHT[snap_obj_name]
-
-                        
-                kinbody_name = kinbody_file.replace('.kinbody.xml', '')
-                kinbody_name = kinbody_name + str(marker.id)
+                        if kinbody_name in objs_to_snap or snapAll == True:
+                            final_kb_pose[2,3] = snap_z_origin + OBJ_HEIGHT[snap_obj_name]
 
                 if objs_to_align is not None:
-                    if kinbody_name in objs_to_align:
-                        ax,ay,az = euler_from_matrix(final_kb_pose[:3,:3])
+                    if alignAll == True or kinbody_name in objs_to_align:
+                        #Align object's z with world z
+                        r = numpy.arctan2(final_kb_pose[1,0], final_kb_pose[0,0])
                         #Align the kinbody upright
                         if kinbody_name.startswith('table'):
                             #Table's identity pose is flipped (NEED TO CORRECT)
-                            ax = numpy.pi/2.0
-                            ay = 0.0
+                            new_rot_mat = numpy.array([[ numpy.cos(r), 0.,  numpy.sin(r)],
+                                                        [ numpy.sin(r), 0., -numpy.cos(r)],
+                                                        [           0., 1.,           0.]])
                         else:
-                            ay = 0.0
-                        new_rot_mat = euler_matrix(ax,ay,az)
+                            new_rot_mat = numpy.array([[numpy.cos(r), -numpy.sin(r), 0.],
+                                                        [numpy.sin(r),  numpy.cos(r), 0.],
+                                                        [          0.,            0., 1.]])
                         for i in range(3):
                             for j in range(3):
                                 final_kb_pose[i,j] = new_rot_mat[i,j]
@@ -154,7 +163,7 @@ class KinBodyDetector(object):
                 body.SetTransform(final_kb_pose)
 
                 if snap_to_obj == True:
-                    if kinbody_name in objs_to_snap:
+                    if kinbody_name in objs_to_snap or (snapAll == True and marker.ns != snap_marker_ns):
                         # Crazy loop to get out of collision
                         snap_obj_tag_name = snap_obj_name+`tag_ID`
                         snap_kb_obj = self.env.GetKinBody(snap_obj_tag_name)
