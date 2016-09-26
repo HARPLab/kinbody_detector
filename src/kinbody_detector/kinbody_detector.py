@@ -24,7 +24,20 @@ class KinBodyDetector(object):
                  destination_frame='map',
                  reference_link=None):
         
-        # Initialize a new ros node if one has not already been created
+        '''
+        Class to detect kinbodies - called by the apriltags detector 
+        @param env The OpenRAVE environment
+        @param marker_data_path A datafile which maps object tag IDs to the relative
+            transform between the tag location on the object and the object's origin 
+        @param kinbody_directory The parent folder where all kinbody.xml files exist
+            (typically in pr-ordata)
+        @param marker_topic The name of the ROS topic which publishes information
+            about April Tag markers
+        @param detection_frame The TF coordinate frame for the sensor 
+        @param destination_frame The TF coordinate frame in which to get the detected pose
+        @param reference_link The KinBody link relative to which the pose is returned
+        '''  
+
         try:
             rospy.init_node('kinbody_detector', anonymous=True)
         except rospy.exceptions.ROSException:
@@ -43,10 +56,34 @@ class KinBodyDetector(object):
         self.ReloadKinbodyData()    
     
     def ReloadKinbodyData(self):
+        '''
+        Opens and loads the file that has tag mapping data
+        '''
         with open(self.marker_data_path, 'r') as f:
             self.marker_data = json.load(f)
     
     def Update(self, timeout=10, **kw_args):
+        '''
+        Updates kinbody detections from the next message on the
+        April Tags marker topic.
+        @param timeout How long to wait for the next message on the AprilTags topic
+        The kw_args expects a nested dictionary with the following keys:
+        snapToObject - Specifies an object on which other kinbodies will be 
+            snapped, i.e. the z-coordinates aligned. Typically this is the table.
+            Its value is also a dictionary with the following keys:
+                ns - tag namespace for object to snap on
+                name - name of object to snap on. 'name'+'ns' should be the unique ID
+                to_snap - list of object IDs to snap. If list is ['all'], then all other
+                    objects are snapped on 
+        alignUpright - Specifies the objects whose z-axis is to be aligned with the 
+            world Z axis. The value is a list of object IDs OR ['all'].
+            NOTE that the table kinbody has a different axis alignment and so there
+            is special logic to deal with it.
+
+        Example kw_args : {'snapToObject' : {'ns' : 127, 'name' : 'table', 'to_snap' : ['all']}, 
+                           'alignUpright' : ['table127', 'plastic_glass124'] }
+        '''
+
         marker_message = rospy.wait_for_message(self.marker_topic,
                                                 MarkerArray,
                                                 timeout=timeout)
@@ -54,12 +91,12 @@ class KinBodyDetector(object):
         added_kinbodies = []
         updated_kinbodies = []
 
-        # Example kw_args : {'snapToObject' : {'ns' : 127, 'name' : 'table', 'to_snap' : ['bowl135', 'obj2', ...]}, 'alignUpright' : ['table127', 'plastic_glass124', ...] }
-        # We need the snapToObject value to be of a dictionary so we get the TagID separately
-        # So we can compare with tagXYZ in the MarkerArray
-        # For alignUpright we can just use the expected kinbody names
+
         marker_list = marker_message.markers
         
+        # Check if snapping to object is requested and do necessary bookkeeping
+        # If snapping is required, the object on which to snap
+        # is processed first so as to obtain it's z-coordinate
         snap_to_obj = False
         snapAll = False
         if 'snapToObject' in kw_args.keys():
@@ -77,6 +114,7 @@ class KinBodyDetector(object):
             marker_list.extend([marker for marker in marker_message.markers if marker.ns != snap_marker_ns])
             snap_z_origin= 0.0
 
+        # Check if object alignment is requested and do necessary bookkeeping
         objs_to_align = None
         alignAll = False
         if 'alignUpright' in kw_args.keys():
@@ -131,9 +169,11 @@ class KinBodyDetector(object):
                     if alignAll == True or kinbody_name in objs_to_align:
                         #Align object's z with world z
                         r = numpy.arctan2(final_kb_pose[1,0], final_kb_pose[0,0])
+                        
                         #Align the kinbody upright
                         if kinbody_name.startswith('table'):
-                            #Table's identity pose is flipped (NEED TO CORRECT)
+                            
+                            #Table's identity pose is flipped
                             new_rot_mat = numpy.array([[ numpy.cos(r), 0.,  numpy.sin(r)],
                                                         [ numpy.sin(r), 0., -numpy.cos(r)],
                                                         [           0., 1.,           0.]])
@@ -164,9 +204,10 @@ class KinBodyDetector(object):
 
                 if snap_to_obj == True:
                     if kinbody_name in objs_to_snap or (snapAll == True and marker.ns != snap_marker_ns):
-                        # Crazy loop to get out of collision
                         snap_obj_tag_name = snap_obj_name+`tag_ID`
                         snap_kb_obj = self.env.GetKinBody(snap_obj_tag_name)
+                        
+                        # Push snapped object up, out of collision
                         while self.env.CheckCollision(snap_kb_obj,body) == True:
                             final_kb_pose[2,3] += 0.01
                             body.SetTransform(final_kb_pose)
