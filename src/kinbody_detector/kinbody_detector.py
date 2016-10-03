@@ -9,7 +9,7 @@ import numpy
 from visualization_msgs.msg import MarkerArray, Marker
 from tf.transformations import quaternion_matrix, euler_from_matrix, euler_matrix
 
-OBJ_HEIGHT ={'table' : 0.7384871317}
+OBJ_HEIGHT ={'table127' : 0.7384871317}
 
 class DetectorException(Exception):
     pass
@@ -53,7 +53,56 @@ class KinBodyDetector(object):
         self.reference_link = reference_link
         self.listener = tf.TransformListener()
         
-        self.ReloadKinbodyData()    
+        self.ReloadKinbodyData()
+
+    def AlignUpright(self,kinbody_name,kinbody_pose):
+        '''
+        Aligns the given kinbody with the world z_axis
+        Special logic if it is the table kinbody
+
+        @param kinbody_name The name of the body
+        @param kinbody_pose The current pose of the kinbody
+        @return The new 3x3 rotation matrix
+        '''
+        r = numpy.arctan2(kinbody_pose[1,0], kinbody_pose[0,0])
+
+        if kinbody_name.startswith('table'):
+            new_rot_mat = numpy.array([[ numpy.cos(r), 0.,  numpy.sin(r)],
+                                      [ numpy.sin(r), 0., -numpy.cos(r)],
+                                      [           0., 1.,           0.]])
+        else:
+            new_rot_mat = numpy.array([[numpy.cos(r), -numpy.sin(r), 0.],
+                                      [numpy.sin(r),  numpy.cos(r), 0.],
+                                      [          0.,            0., 1.]])
+
+        return new_rot_mat
+
+    def SnapTo(self,body,snap_body_name):
+        '''
+        Snaps the kinbody passed to it to a named object. It sets the height of
+        the body to the current z value of the named object plus an offset looked up
+        (currently from a global list at the top of this file)
+
+        @param body The kinbody object to snap
+        @param snap_body_name The name of the object on which to snap 'body'
+
+        No return type - the pose of 'body' is updated internally
+        '''
+        snap_kb_obj = self.env.GetKinBody(snap_body_name)
+        snap_body_pose = snap_kb_obj.GetTransform()
+        kb_pose = body.GetTransform()
+
+        # Adjust to origin of snap_body
+        snap_z_origin = snap_body_pose[2,3]
+        kb_pose[2,3] = snap_z_origin + OBJ_HEIGHT[snap_body_name]
+        body.SetTransform(kb_pose)
+
+        # Ensure out of collision
+        while self.env.CheckCollision(snap_kb_obj,body) == True:
+            kb_pose[2,3] += 0.01
+            body.SetTransform(kb_pose)
+
+
     
     def ReloadKinbodyData(self):
         '''
@@ -124,6 +173,8 @@ class KinBodyDetector(object):
 
         for marker in marker_list:
             if marker.ns in self.marker_data:
+
+                # Map kinbody to tag and get initial pose
                 kinbody_file, kinbody_offset = self.marker_data[marker.ns]
                 kinbody_offset = numpy.array(kinbody_offset)
                 marker_pose = numpy.array(quaternion_matrix([
@@ -155,40 +206,20 @@ class KinBodyDetector(object):
 
                 final_kb_pose = kinbody_pose
 
+                #Transform w.r.t reference link if link present
+                if self.reference_link is not None:
+                    ref_link_pose = self.reference_link.GetTransform()
+                    final_kb_pose = numpy.dot(ref_link_pose,kinbody_pose)
+
+                # Load kinbody file
                 kinbody_name = kinbody_file.replace('.kinbody.xml', '')
                 kinbody_name = kinbody_name + str(marker.id)
 
-                #Transform w.r.t reference link if link present
-                if snap_to_obj == True:
-                    if marker.ns == snap_marker_ns:
-                        snap_z_origin = final_kb_pose[2,3]
-                    else:
-                        if kinbody_name in objs_to_snap or snapAll == True:
-                            final_kb_pose[2,3] = snap_z_origin + OBJ_HEIGHT[snap_obj_name]
 
+                # Align upright block
                 if objs_to_align is not None:
                     if alignAll == True or kinbody_name in objs_to_align:
-                        #Align object's z with world z
-                        r = numpy.arctan2(final_kb_pose[1,0], final_kb_pose[0,0])
-                        
-                        #Align the kinbody upright
-                        if kinbody_name.startswith('table'):
-                            
-                            #Table's identity pose is flipped
-                            new_rot_mat = numpy.array([[ numpy.cos(r), 0.,  numpy.sin(r)],
-                                                        [ numpy.sin(r), 0., -numpy.cos(r)],
-                                                        [           0., 1.,           0.]])
-                        else:
-                            new_rot_mat = numpy.array([[numpy.cos(r), -numpy.sin(r), 0.],
-                                                        [numpy.sin(r),  numpy.cos(r), 0.],
-                                                        [          0.,            0., 1.]])
-                        for i in range(3):
-                            for j in range(3):
-                                final_kb_pose[i,j] = new_rot_mat[i,j]
-
-                if snap_to_obj == True:
-                    if kinbody_name in objs_to_snap:
-                        final_kb_pose[2,3] = snap_z_origin + OBJ_HEIGHT[snap_obj_name]
+                        final_kb_pose[0:3,0:3] = self.AlignUpright(kinbody_name,final_kb_pose)
                 
                 # load the object if it does not exist
                 if self.env.GetKinBody(kinbody_name) is None:
@@ -203,17 +234,12 @@ class KinBodyDetector(object):
                     updated_kinbodies.append(body)
                 
                 body = self.env.GetKinBody(kinbody_name)
-
                 body.SetTransform(final_kb_pose)
 
+                # Snap to specified object - has to happen at end because body needed
                 if snap_to_obj == True:
-                    if kinbody_name in objs_to_snap or (snapAll == True and marker.ns != snap_marker_ns):
+                    if (marker.ns != snap_marker_ns) and (kinbody_name in objs_to_snap or snapAll == True):
                         snap_obj_tag_name = snap_obj_name+`tag_ID`
-                        snap_kb_obj = self.env.GetKinBody(snap_obj_tag_name)
-                        
-                        # Push snapped object up, out of collision
-                        while self.env.CheckCollision(snap_kb_obj,body) == True:
-                            final_kb_pose[2,3] += 0.01
-                            body.SetTransform(final_kb_pose)
+                        self.SnapTo(body,snap_obj_tag_name)
         
         return added_kinbodies, updated_kinbodies
