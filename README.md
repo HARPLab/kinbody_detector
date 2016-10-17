@@ -64,13 +64,15 @@ We follow some conventions when creating kinbodies:
   
   ![kinbody_detector RViz window](docs/kinbody_detector_open.png)
   
+  If you can't see the objects, make sure InteractiveMarker or OpenRAVEMarkers is being displayed in rviz.
+  
 3. If you are updating an existing model, run `read()` in the IPython terminal to load the pose of the tag from the JSON database.
   
 4. Right click on the apriltag and choose `Body > Pose Controls`. This will create translation and rotation handles that allow you to move the pose of the apriltag in the environment.
 
   ![kinbody_detector Pose Controls](docs/kinbody_detector_pose.png)
   
-  Note that the tag may start out under the object. You may need to move the camera around to find it.
+  Note that the tag may start out under the object. You may need to move the camera around to find it. If the object is much larger than the tag, the view will start zoomed out and the tag may be very small, so zoom in to find it.
 
 5. Use the handles to position the apriltag correctly relative to the model. Be careful to match the orientation of the tag correctly - it's easy to accidentally rotate the tag by 90 degrees.
 
